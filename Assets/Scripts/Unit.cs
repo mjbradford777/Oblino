@@ -8,17 +8,35 @@ public class Unit : MonoBehaviour
     const float pathUpdateMoveThreshold = 0.5f;
     // Creates variables for the target of movement, speed of movement, the path, and the index of the target within the path
     public Transform target;
-    public float speed = 20.0f;
+    public Vector3 targetPosition;
+    public float speed = 10.0f;
     public float turnSpeed = 3.0f;
     public float turnDistance = 5.0f;
     public float stoppingDistance = 10.0f;
+
+    private bool movementTimeoutRunning = false;
+    private float duration = 3.0f;
+
+    private Animator unitAnim;
 
     AStarPath path;
 
     private void Start()
     {
+        unitAnim = GetComponent<Animator>();
         // Puts in a request for pathfinding
-        StartCoroutine(UpdatePath());
+        /*if (target != null)
+        {
+            StartCoroutine(UpdatePath());
+        }*/
+    }
+
+    public void Update()
+    {
+        if (movementTimeoutRunning)
+        {
+            duration -= Time.deltaTime;
+        }
     }
 
     public void OnPathFound(Vector3[] waypoints, bool pathSuccessful)
@@ -38,18 +56,25 @@ public class Unit : MonoBehaviour
         {
             yield return new WaitForSeconds(0.3f);
         }
-        PathRequestManager.RequestPath(new PathRequest(transform.position, target.position, OnPathFound));
+        PathRequestManager.RequestPath(new PathRequest(transform.position, targetPosition, OnPathFound));
+        /*PathRequestManager.RequestPath(new PathRequest(transform.position, target.position, OnPathFound));*/
 
         float sqrMoveThreshold = pathUpdateMoveThreshold * pathUpdateMoveThreshold;
-        Vector3 targetPosOld = target.position;
+        Vector3 targetPosOld = targetPosition;
+        /*Vector3 targetPosOld = target.position;*/
         while (true)
         {
             yield return new WaitForSeconds(minPathUpdateTime);
-            if ((target.position - targetPosOld).sqrMagnitude > sqrMoveThreshold)
+            if ((targetPosition - targetPosOld).sqrMagnitude > sqrMoveThreshold)
+            {
+                PathRequestManager.RequestPath(new PathRequest(transform.position, targetPosition, OnPathFound));
+                targetPosOld = targetPosition;
+            }
+            /*if ((target.position - targetPosOld).sqrMagnitude > sqrMoveThreshold)
             {
                 PathRequestManager.RequestPath(new PathRequest(transform.position, target.position, OnPathFound));
                 targetPosOld = target.position;
-            }
+            }*/
         }
     }
 
@@ -61,6 +86,9 @@ public class Unit : MonoBehaviour
 
         float speedPercent = 1;
 
+        unitAnim.SetBool("isRunningAnim", true);
+        Debug.Log("Start Running");
+
         while (followingPath)
         {
             Vector2 pos2D = new Vector2(transform.position.x, transform.position.z);
@@ -69,6 +97,8 @@ public class Unit : MonoBehaviour
                 if (pathIndex == path.finishLineIndex)
                 {
                     followingPath = false;
+                    unitAnim.SetBool("isRunningAnim", false);
+                    unitAnim.SetBool("isWalkingAnim", false);
                     break;
                 }
                 else
@@ -82,9 +112,26 @@ public class Unit : MonoBehaviour
                 if (pathIndex >= path.slowDownIndex && stoppingDistance > 0)
                 {
                     speedPercent = Mathf.Clamp01(path.turnBoundaries[path.finishLineIndex].DistanceFromPoint(pos2D) / stoppingDistance);
+                    if (speedPercent < 0.25f && unitAnim.GetBool("isRunningAnim") == true)
+                    {
+                        unitAnim.SetBool("isRunningAnim", false);
+                        unitAnim.SetBool("isWalkingAnim", true);
+                        if (!movementTimeoutRunning)
+                        {
+                            movementTimeoutRunning = true;
+                        } else if (movementTimeoutRunning && duration <= 0f)
+                        {
+                            followingPath = false;
+                            unitAnim.SetBool("isRunningAnim", false);
+                            unitAnim.SetBool("isWalkingAnim", false);
+                            movementTimeoutRunning = false;
+                            duration = 3.0f;
+                        }
+                    }
                     if (speedPercent < 0.01f)
                     {
                         followingPath = false;
+                        unitAnim.SetBool("isWalkingAnim", false);
                     }
                 }
 
@@ -95,5 +142,10 @@ public class Unit : MonoBehaviour
             }
             yield return null;
         }
+    }
+
+    public void StartPathfinding()
+    {
+        StartCoroutine(UpdatePath());
     }
 }
