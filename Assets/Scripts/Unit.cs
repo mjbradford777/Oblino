@@ -7,7 +7,6 @@ public class Unit : MonoBehaviour
     const float minPathUpdateTime = 0.2f;
     const float pathUpdateMoveThreshold = 0.5f;
     // Creates variables for the target of movement, speed of movement, the path, and the index of the target within the path
-    public Transform target;
     public Vector3 targetPosition;
     public float speed = 10.0f;
     public float turnSpeed = 3.0f;
@@ -24,11 +23,6 @@ public class Unit : MonoBehaviour
     private void Start()
     {
         unitAnim = GetComponent<Animator>();
-        // Puts in a request for pathfinding
-        /*if (target != null)
-        {
-            StartCoroutine(UpdatePath());
-        }*/
     }
 
     public void Update()
@@ -57,11 +51,9 @@ public class Unit : MonoBehaviour
             yield return new WaitForSeconds(0.3f);
         }
         PathRequestManager.RequestPath(new PathRequest(transform.position, targetPosition, OnPathFound));
-        /*PathRequestManager.RequestPath(new PathRequest(transform.position, target.position, OnPathFound));*/
 
         float sqrMoveThreshold = pathUpdateMoveThreshold * pathUpdateMoveThreshold;
         Vector3 targetPosOld = targetPosition;
-        /*Vector3 targetPosOld = target.position;*/
         while (true)
         {
             yield return new WaitForSeconds(minPathUpdateTime);
@@ -70,11 +62,6 @@ public class Unit : MonoBehaviour
                 PathRequestManager.RequestPath(new PathRequest(transform.position, targetPosition, OnPathFound));
                 targetPosOld = targetPosition;
             }
-            /*if ((target.position - targetPosOld).sqrMagnitude > sqrMoveThreshold)
-            {
-                PathRequestManager.RequestPath(new PathRequest(transform.position, target.position, OnPathFound));
-                targetPosOld = target.position;
-            }*/
         }
     }
 
@@ -147,5 +134,14 @@ public class Unit : MonoBehaviour
     public void StartPathfinding()
     {
         StartCoroutine(UpdatePath());
+    }
+
+    public void Halt()
+    {
+        StopCoroutine("FollowPath");
+        unitAnim.SetBool("isRunningAnim", false);
+        unitAnim.SetBool("isWalkingAnim", false);
+        movementTimeoutRunning = false;
+        duration = 3.0f;
     }
 }
