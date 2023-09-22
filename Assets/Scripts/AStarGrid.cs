@@ -14,7 +14,7 @@ public class AStarGrid : MonoBehaviour
     public TerrainType[] walkableRegions;
     LayerMask walkableMask;
     // Creates penalty for being near obstacles to discourage movement near obstacles
-    public int obstacleProximityPenalty = 10;
+    public int obstacleProximityPenalty = 100;
     // Creates a dictionary of walkable terrains for more efficient searching
     Dictionary<int, int> walkableRegionsDictionary = new Dictionary<int, int>();
     // 2D array grid for nodes
