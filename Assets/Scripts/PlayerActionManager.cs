@@ -6,6 +6,7 @@ using UnityEngine.EventSystems;
 public class PlayerActionManager : MonoBehaviour
 {
     public Camera camera;
+
     public enum Action
     {
         Select,
@@ -17,6 +18,7 @@ public class PlayerActionManager : MonoBehaviour
     }
 
     public Action currentAction;
+    private Action priorAction;
     public EventSystem eventSystem;
 
     private List<GameObject> currentlySelectedUnits = new List<GameObject>();
@@ -46,7 +48,25 @@ public class PlayerActionManager : MonoBehaviour
                 Debug.Log(touch);
             }
         }*/
-
+        if (currentAction == Action.Camera)
+        {
+            if (Input.mousePosition.x >= Screen.width - Screen.width * 0.01)
+            {
+                camera.transform.Translate(Vector3.right * Time.deltaTime * 20);
+            }
+            if (Input.mousePosition.x <= Screen.width * 0.01)
+            {
+                camera.transform.Translate(Vector3.left * Time.deltaTime * 20);
+            }
+            if (Input.mousePosition.y >= Screen.height - Screen.width * 0.01)
+            {
+                camera.transform.Translate(Vector3.forward * Time.deltaTime * 20, Space.World);
+            }
+            if (Input.mousePosition.y <= Screen.width * 0.01)
+            {
+                camera.transform.Translate(Vector3.back * Time.deltaTime * 20, Space.World);
+            }
+        }
         
 
         if (Input.GetMouseButtonDown(0))
@@ -149,28 +169,38 @@ public class PlayerActionManager : MonoBehaviour
         }
     }
 
-    public void SetSelectAction()
+    public void SetAction(string action)
     {
-        currentAction = Action.Select;
+        if (action == "select")
+        {
+            currentAction = Action.Select;
+        }
+        else if (action == "drag")
+        {
+            currentAction = Action.Drag;
+        }
+        else if (action == "move")
+        {
+            currentAction = Action.Move;
+        }
+        else if (action == "attack")
+        {
+            currentAction = Action.Attack;
+        }
+        else if (action == "cast")
+        {
+            currentAction = Action.Cast;
+        }
+        else if (action == "camera")
+        {
+            priorAction = currentAction;
+            currentAction = Action.Camera;
+        }
     }
 
-    public void SetDragAction()
+    public void EndCameraAction()
     {
-        currentAction = Action.Drag;
-    }
-
-    public void SetMoveAction()
-    {
-        currentAction = Action.Move;
-    }
-
-    public void SetAttackAction()
-    {
-        currentAction = Action.Attack;
-    }
-    public void SetCastAction()
-    {
-        currentAction = Action.Cast;
+        currentAction = priorAction;
     }
 
     public void ClearSelection()
@@ -193,84 +223,104 @@ public class PlayerActionManager : MonoBehaviour
         }
     }
 
-    public void SetGroup1()
+    public void SetGroup(int groupNum)
     {
-        foreach (GameObject unit in  currentlySelectedUnits)
+        if (groupNum == 1)
         {
-            controlGroup1.Add(unit);
-        }
-    }
-
-    public void SetGroup2()
-    {
-        foreach (GameObject unit in currentlySelectedUnits)
-        {
-            controlGroup2.Add(unit);
-        }
-    }
-
-    public void SetGroup3()
-    {
-        foreach (GameObject unit in currentlySelectedUnits)
-        {
-            controlGroup3.Add(unit);
-        }
-    }
-
-    public void SelectGroup1()
-    {
-        foreach (GameObject unit in currentlySelectedUnits)
-        {
-            Unit temp = unit.GetComponent<Unit>();
-            temp.RemoveHighlighting();
-        }
-        currentlySelectedUnits.Clear();
-        if (controlGroup1.Count > 0)
-        {
-            foreach (GameObject unit in controlGroup1)
+            controlGroup1.Clear();
+            foreach (GameObject unit in currentlySelectedUnits)
             {
-                currentlySelectedUnits.Add(unit);
-                Unit temp = unit.GetComponent<Unit>();
-                temp.AddHighlighting();
+                controlGroup1.Add(unit);
+            }
+        }
+        else if (groupNum == 2)
+        {
+            controlGroup2.Clear();
+            foreach (GameObject unit in currentlySelectedUnits)
+            {
+                controlGroup2.Add(unit);
+            }
+        }
+        else if (groupNum == 3)
+        {
+            controlGroup3.Clear();
+            foreach (GameObject unit in currentlySelectedUnits)
+            {
+                controlGroup3.Add(unit);
             }
         }
     }
 
-    public void SelectGroup2()
+    public void SelectGroup(int groupNum)
     {
-        foreach (GameObject unit in currentlySelectedUnits)
+        if (groupNum == 1)
         {
-            Unit temp = unit.GetComponent<Unit>();
-            temp.RemoveHighlighting();
-        }
-        currentlySelectedUnits.Clear();
-        if (controlGroup2.Count > 0)
-        {
-            foreach (GameObject unit in controlGroup2)
+            foreach (GameObject unit in currentlySelectedUnits)
             {
-                currentlySelectedUnits.Add(unit);
                 Unit temp = unit.GetComponent<Unit>();
-                temp.AddHighlighting();
+                temp.RemoveHighlighting();
+            }
+            currentlySelectedUnits.Clear();
+            if (controlGroup1.Count > 0)
+            {
+                foreach (GameObject unit in controlGroup1)
+                {
+                    currentlySelectedUnits.Add(unit);
+                    Unit temp = unit.GetComponent<Unit>();
+                    temp.AddHighlighting();
+                }
+            }
+        }
+        else if (groupNum == 2)
+        {
+            foreach (GameObject unit in currentlySelectedUnits)
+            {
+                Unit temp = unit.GetComponent<Unit>();
+                temp.RemoveHighlighting();
+            }
+            currentlySelectedUnits.Clear();
+            if (controlGroup2.Count > 0)
+            {
+                foreach (GameObject unit in controlGroup2)
+                {
+                    currentlySelectedUnits.Add(unit);
+                    Unit temp = unit.GetComponent<Unit>();
+                    temp.AddHighlighting();
+                }
+            }
+        }
+        else if (groupNum == 3)
+        {
+            foreach (GameObject unit in currentlySelectedUnits)
+            {
+                Unit temp = unit.GetComponent<Unit>();
+                temp.RemoveHighlighting();
+            }
+            currentlySelectedUnits.Clear();
+            if (controlGroup3.Count > 0)
+            {
+                foreach (GameObject unit in controlGroup3)
+                {
+                    currentlySelectedUnits.Add(unit);
+                    Unit temp = unit.GetComponent<Unit>();
+                    temp.AddHighlighting();
+                }
             }
         }
     }
 
-    public void SelectGroup3()
+    public void CenterCamera(string target)
     {
-        foreach (GameObject unit in currentlySelectedUnits)
+        if (target == "unit")
         {
-            Unit temp = unit.GetComponent<Unit>();
-            temp.RemoveHighlighting();
-        }
-        currentlySelectedUnits.Clear();
-        if (controlGroup3.Count > 0)
-        {
-            foreach (GameObject unit in controlGroup3)
+            if (currentlySelectedUnits.Count > 0)
             {
-                currentlySelectedUnits.Add(unit);
-                Unit temp = unit.GetComponent<Unit>();
-                temp.AddHighlighting();
+                camera.transform.position = new Vector3(currentlySelectedUnits[0].transform.position.x, camera.transform.position.y, currentlySelectedUnits[0].transform.position.z - 10);
             }
+        }
+        else if (target == "home")
+        {
+            // Implement this when base exists
         }
     }
 }
