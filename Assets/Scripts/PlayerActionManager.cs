@@ -26,56 +26,28 @@ public class PlayerActionManager : MonoBehaviour
 
     private Vector3 dragStart;
 
+    private LineRenderer lineRend;
+
     // Start is called before the first frame update
     void Start()
     {
         camera = Camera.main;
-        /*eventSystem = GetComponent<EventSystem>();*/
-        /*currentAction = Action.Select;*/
+        lineRend = GetComponent<LineRenderer>();
+        lineRend.positionCount = 0;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (Input.touchCount > 0)
+        /*if (Input.touchCount > 0)
         {
             foreach (Touch touch in Input.touches)
             {
                 Debug.Log(touch);
             }
-        }
+        }*/
 
-        if (currentAction == Action.Drag)
-        {
-            if (Input.GetMouseButtonUp(0))
-            {
-                Vector3 mousePosition = Input.mousePosition;
-                Ray ray = camera.ScreenPointToRay(mousePosition);
-                if (Physics.Raycast(ray, out RaycastHit hit))
-                {
-                    currentlySelectedUnits.Clear();
-                    Vector3 centerPoint = new Vector3((dragStart.x + hit.point.x) / 2, hit.point.y, (dragStart.z +  hit.point.z) / 2);
-                    Vector3 half;
-                    if (hit.point.y < 1)
-                    {
-                        half = new Vector3(Mathf.Abs(dragStart.x - hit.point.x) / 2, 1, Mathf.Abs(dragStart.z - hit.point.z) / 2);
-                    }
-                    else
-                    {
-                        half = new Vector3(Mathf.Abs(dragStart.x - hit.point.x) / 2, hit.point.y / 2, Mathf.Abs(dragStart.z - hit.point.z) / 2);
-                    }
-                    Collider[] encompassedColliders = Physics.OverlapBox(centerPoint, half);
-                    foreach (Collider collider in encompassedColliders)
-                    {
-                        if (collider.gameObject.tag == "PlayerUnit")
-                        {
-                            currentlySelectedUnits.Add(collider.gameObject);
-                        }
-                    }
-                    Debug.Log(currentlySelectedUnits.Count);
-                }
-            }
-        }
+        
 
         if (Input.GetMouseButtonDown(0))
         {
@@ -87,12 +59,18 @@ public class PlayerActionManager : MonoBehaviour
                 {
                     if (currentAction == Action.Select && hit.collider.gameObject.tag == "PlayerUnit")
                     {
-                        Debug.Log("Unit selected");
                         currentlySelectedUnits.Add(hit.collider.gameObject);
+                        Unit temp = hit.collider.gameObject.GetComponent<Unit>();
+                        temp.AddHighlighting();
                     }
                     else if (currentAction == Action.Drag)
                     {
                         dragStart = hit.point;
+                        lineRend.positionCount = 4;
+                        lineRend.SetPosition(0, new Vector3(dragStart.x, 0.1f, dragStart.z));
+                        lineRend.SetPosition(1, new Vector3(dragStart.x, 0.1f, dragStart.z));
+                        lineRend.SetPosition(2, new Vector3(dragStart.x, 0.1f, dragStart.z));
+                        lineRend.SetPosition(3, new Vector3(dragStart.x, 0.1f, dragStart.z));
                     }
                     else if (currentAction == Action.Move && currentlySelectedUnits.Count > 0)
                     {
@@ -106,41 +84,103 @@ public class PlayerActionManager : MonoBehaviour
                 }
             }
         }
+
+        if (currentAction == Action.Drag)
+        {
+            if (Input.GetMouseButtonUp(0))
+            {
+                lineRend.positionCount = 0;
+                if (!eventSystem.IsPointerOverGameObject())
+                {
+                    Vector3 mousePosition = Input.mousePosition;
+                    Ray ray = camera.ScreenPointToRay(mousePosition);
+                    if (Physics.Raycast(ray, out RaycastHit hit))
+                    {
+                        Vector3 centerPoint = new Vector3((dragStart.x + hit.point.x) / 2, hit.point.y, (dragStart.z + hit.point.z) / 2);
+                        Vector3 half;
+                        if (hit.point.y < 1)
+                        {
+                            half = new Vector3(Mathf.Abs(dragStart.x - hit.point.x) / 2, 1, Mathf.Abs(dragStart.z - hit.point.z) / 2);
+                        }
+                        else
+                        {
+                            half = new Vector3(Mathf.Abs(dragStart.x - hit.point.x) / 2, hit.point.y / 2, Mathf.Abs(dragStart.z - hit.point.z) / 2);
+                        }
+                        Collider[] encompassedColliders = Physics.OverlapBox(centerPoint, half);
+                        bool hasPlayerUnit = false;
+                        foreach (Collider collider in encompassedColliders)
+                        {
+                            if (!hasPlayerUnit && collider.gameObject.tag == "PlayerUnit")
+                            {
+                                hasPlayerUnit = true;
+                                foreach (GameObject unit in currentlySelectedUnits)
+                                {
+                                    Unit temp = unit.GetComponent<Unit>();
+                                    temp.RemoveHighlighting();
+                                }
+                                currentlySelectedUnits.Clear();
+                                currentlySelectedUnits.Add(collider.gameObject);
+                                Unit temp2 = collider.gameObject.GetComponent<Unit>();
+                                temp2.AddHighlighting();
+                            }
+                            else if (collider.gameObject.tag == "PlayerUnit")
+                            {
+                                currentlySelectedUnits.Add(collider.gameObject);
+                                Unit temp = collider.gameObject.GetComponent<Unit>();
+                                temp.AddHighlighting();
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (Input.GetMouseButton(0) && !eventSystem.IsPointerOverGameObject())
+            {
+                Vector3 mousePosition = Input.mousePosition;
+                Ray ray = camera.ScreenPointToRay(mousePosition);
+                if (Physics.Raycast(ray, out RaycastHit hit))
+                {
+                    lineRend.SetPosition(0, new Vector3(dragStart.x, 0.1f, dragStart.z));
+                    lineRend.SetPosition(1, new Vector3(dragStart.x, 0.1f,  hit.point.z));
+                    lineRend.SetPosition(2, new Vector3(hit.point.x, 0.1f,  hit.point.z));
+                    lineRend.SetPosition(3, new Vector3(hit.point.x, 0.1f,  dragStart.z));
+                }
+            }
+        }
     }
 
     public void SetSelectAction()
     {
         currentAction = Action.Select;
-        Debug.Log(Equals(currentAction, Action.Select));
     }
 
     public void SetDragAction()
     {
         currentAction = Action.Drag;
-        Debug.Log(Equals(currentAction, Action.Drag));
     }
 
     public void SetMoveAction()
     {
         currentAction = Action.Move;
-        Debug.Log(Equals(currentAction, Action.Move));
     }
 
     public void SetAttackAction()
     {
         currentAction = Action.Attack;
-        Debug.Log(Equals(currentAction, Action.Attack));
     }
     public void SetCastAction()
     {
         currentAction = Action.Cast;
-        Debug.Log(Equals(currentAction, Action.Cast));
     }
 
     public void ClearSelection()
     {
+        foreach (GameObject unit in currentlySelectedUnits)
+        {
+            Unit temp = unit.GetComponent<Unit>();
+            temp.RemoveHighlighting();
+        }
         currentlySelectedUnits.Clear();
-        Debug.Log(currentlySelectedUnits.Count);
     }
 
     public void CallHalt()
@@ -151,6 +191,86 @@ public class PlayerActionManager : MonoBehaviour
             Unit temp = go.GetComponent<Unit>();
             temp.Halt();
         }
-        Debug.Log("Halt");
+    }
+
+    public void SetGroup1()
+    {
+        foreach (GameObject unit in  currentlySelectedUnits)
+        {
+            controlGroup1.Add(unit);
+        }
+    }
+
+    public void SetGroup2()
+    {
+        foreach (GameObject unit in currentlySelectedUnits)
+        {
+            controlGroup2.Add(unit);
+        }
+    }
+
+    public void SetGroup3()
+    {
+        foreach (GameObject unit in currentlySelectedUnits)
+        {
+            controlGroup3.Add(unit);
+        }
+    }
+
+    public void SelectGroup1()
+    {
+        foreach (GameObject unit in currentlySelectedUnits)
+        {
+            Unit temp = unit.GetComponent<Unit>();
+            temp.RemoveHighlighting();
+        }
+        currentlySelectedUnits.Clear();
+        if (controlGroup1.Count > 0)
+        {
+            foreach (GameObject unit in controlGroup1)
+            {
+                currentlySelectedUnits.Add(unit);
+                Unit temp = unit.GetComponent<Unit>();
+                temp.AddHighlighting();
+            }
+        }
+    }
+
+    public void SelectGroup2()
+    {
+        foreach (GameObject unit in currentlySelectedUnits)
+        {
+            Unit temp = unit.GetComponent<Unit>();
+            temp.RemoveHighlighting();
+        }
+        currentlySelectedUnits.Clear();
+        if (controlGroup2.Count > 0)
+        {
+            foreach (GameObject unit in controlGroup2)
+            {
+                currentlySelectedUnits.Add(unit);
+                Unit temp = unit.GetComponent<Unit>();
+                temp.AddHighlighting();
+            }
+        }
+    }
+
+    public void SelectGroup3()
+    {
+        foreach (GameObject unit in currentlySelectedUnits)
+        {
+            Unit temp = unit.GetComponent<Unit>();
+            temp.RemoveHighlighting();
+        }
+        currentlySelectedUnits.Clear();
+        if (controlGroup3.Count > 0)
+        {
+            foreach (GameObject unit in controlGroup3)
+            {
+                currentlySelectedUnits.Add(unit);
+                Unit temp = unit.GetComponent<Unit>();
+                temp.AddHighlighting();
+            }
+        }
     }
 }

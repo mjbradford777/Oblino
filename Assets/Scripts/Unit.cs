@@ -16,13 +16,17 @@ public class Unit : MonoBehaviour
     private bool movementTimeoutRunning = false;
     private float duration = 3.0f;
 
+    private bool isMoving = false;
+
     private Animator unitAnim;
+    private GameObject highlighter;
 
     AStarPath path;
 
     private void Start()
     {
         unitAnim = GetComponent<Animator>();
+        highlighter = this.transform.GetChild(2).gameObject;
     }
 
     public void Update()
@@ -67,6 +71,7 @@ public class Unit : MonoBehaviour
 
     IEnumerator FollowPath()
     {
+        isMoving = true;
         bool followingPath = true;
         int pathIndex = 0;
         transform.LookAt(path.lookPoints[0]);
@@ -74,7 +79,6 @@ public class Unit : MonoBehaviour
         float speedPercent = 1;
 
         unitAnim.SetBool("isRunningAnim", true);
-        Debug.Log("Start Running");
 
         while (followingPath)
         {
@@ -86,6 +90,7 @@ public class Unit : MonoBehaviour
                     followingPath = false;
                     unitAnim.SetBool("isRunningAnim", false);
                     unitAnim.SetBool("isWalkingAnim", false);
+                    isMoving = false;
                     break;
                 }
                 else
@@ -109,6 +114,7 @@ public class Unit : MonoBehaviour
                         } else if (movementTimeoutRunning && duration <= 0f)
                         {
                             followingPath = false;
+                            isMoving = false;
                             unitAnim.SetBool("isRunningAnim", false);
                             unitAnim.SetBool("isWalkingAnim", false);
                             movementTimeoutRunning = false;
@@ -118,6 +124,7 @@ public class Unit : MonoBehaviour
                     if (speedPercent < 0.01f)
                     {
                         followingPath = false;
+                        isMoving = false;
                         unitAnim.SetBool("isWalkingAnim", false);
                     }
                 }
@@ -139,9 +146,20 @@ public class Unit : MonoBehaviour
     public void Halt()
     {
         StopCoroutine("FollowPath");
+        isMoving = false;
         unitAnim.SetBool("isRunningAnim", false);
         unitAnim.SetBool("isWalkingAnim", false);
         movementTimeoutRunning = false;
         duration = 3.0f;
+    }
+
+    public void AddHighlighting()
+    {
+        highlighter.SetActive(true);
+    }
+
+    public void RemoveHighlighting()
+    {
+        highlighter.SetActive(false);
     }
 }
