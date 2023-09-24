@@ -25,40 +25,73 @@ public class Unit : MonoBehaviour
     const float minPathUpdateTime = 0.2f;
     const float pathUpdateMoveThreshold = 0.5f;
     // Creates variables for the target of movement, speed of movement, the path, and the index of the target within the path
-    private float speed = 10.0f;
-    private float turnSpeed = 3.0f;
-    private float turnDistance = 5.0f;
-    private float stoppingDistance = 10.0f;
-    public bool isDead = false;
+    private float speed;
+    private float turnSpeed;
+    private float turnDistance;
+    private float stoppingDistance;
+    public bool isDead;
 
-    private float sight = 15.0f;
-    private float attackRange = 2.5f;
-    private float maxHP = 50.0f;
-    private float currentHP = 50.0f;
-    private float attackPower = 5.0f;
-    private float armor = 1.0f;
+    private float sight;
+    private float attackRange;
+    private float maxHP;
+    private float currentHP;
+    private float attackPower;
+    private float armor;
+    private float attackSpeed;
 
     public Vector3 attackTargetPos;
     public GameObject attackTarget;
 
-    private bool movementTimeoutRunning = false;
-    private float duration = 3.0f;
+    private bool movementTimeoutRunning;
+    private float duration;
 
-    private bool isMovementSuspended = false;
-    private bool needsNewPath = false;
+    private bool isMovementSuspended;
+    private bool needsNewPath;
     private Vector3 suspendedTarget;
-    private bool inAttackRange = false;
-    private bool isFighting = false;
+    private bool inAttackRange;
+    private bool isFighting;
 
     private Animator unitAnim;
     private GameObject highlighter;
 
     AStarPath path;
 
+    public Unit(UnitAffiliation affiliation, Action currentAction, float speed, float turnSpeed, float turnDistance, float stoppingDistance, bool isDead, float sight, float attackRange, float maxHP, float currentHP, float attackPower, float armor, float attackSpeed, bool movementTimeoutRunning, float duration, bool isMovementSuspended, bool needsNewPath, bool inAttackRange, bool isFighting)
+    {
+        this.affiliation = affiliation;
+        this.currentAction = currentAction;
+        this.speed = speed;
+        this.turnSpeed = turnSpeed;
+        this.turnDistance = turnDistance;
+        this.stoppingDistance = stoppingDistance;
+        this.isDead = isDead;
+        this.sight = sight;
+        this.attackRange = attackRange;
+        this.maxHP = maxHP;
+        this.currentHP = currentHP;
+        this.attackPower = attackPower;
+        this.armor = armor;
+        this.attackSpeed = attackSpeed;
+        this.movementTimeoutRunning = movementTimeoutRunning;
+        this.duration = duration;
+        this.isMovementSuspended = isMovementSuspended;
+        this.needsNewPath = needsNewPath;
+        this.inAttackRange = inAttackRange;
+        this.isFighting = isFighting;
+    }
+
     private void Start()
     {
         unitAnim = GetComponent<Animator>();
         highlighter = this.transform.GetChild(2).gameObject;
+        if (affiliation == UnitAffiliation.Player)
+        {
+            tag = "PlayerUnit";
+        }
+        else
+        {
+            tag = "EnemyUnit";
+        }
     }
 
     public void Update()
@@ -183,7 +216,6 @@ public class Unit : MonoBehaviour
 
     IEnumerator FollowPath()
     {
-        Debug.Log(name + " is on the move");
         needsNewPath = false;
         bool followingPath = true;
         int pathIndex = 0;
@@ -346,6 +378,7 @@ public class Unit : MonoBehaviour
     public IEnumerator Fighting()
     {
         unitAnim.SetBool("isWalkingAnim", false);
+        unitAnim.SetBool("isRunningAnim", false);
         unitAnim.SetBool("isAttackingAnim", true);
        
         List<GameObject> target = new List<GameObject>()
@@ -354,7 +387,6 @@ public class Unit : MonoBehaviour
         };
         while (!isDead && !attackTarget.GetComponent<Unit>().isDead)
         {
-            Debug.Log("Fighting");
             if (!IsTargetInAttackRange(attackTarget.transform.position))
             {
                 isFighting = false;
@@ -364,9 +396,10 @@ public class Unit : MonoBehaviour
             }
             else
             {
+                transform.LookAt(attackTarget.transform.position);
                 InflictDamage(target);
             }
-            yield return new WaitForSeconds(1.0f);
+            yield return new WaitForSeconds(attackSpeed);
         }
         isFighting = false;
         inAttackRange = false;
@@ -375,12 +408,11 @@ public class Unit : MonoBehaviour
         {
             isMovementSuspended = false;
             needsNewPath = true;
-            Debug.Log(name + " is about to pathfind");
+            unitAnim.SetBool("isRunningAnim", true);
             StartPathfinding(suspendedTarget, "attack", true);
         }
         else
         {
-            Debug.Log(name + " is going to start doing nothing");
             currentAction = Action.Nothing;
             StartCoroutine("MoveAwayFromAlly");
         }

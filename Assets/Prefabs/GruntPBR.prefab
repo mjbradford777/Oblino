@@ -371,9 +371,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1555369858153912828}
   - component: {fileID: 4212897215292123155}
-  - component: {fileID: -8152209959851270022}
   - component: {fileID: 7999131294996918715}
   - component: {fileID: -964017354421187043}
+  - component: {fileID: 6466720462926695667}
   m_Layer: 0
   m_Name: GruntPBR
   m_TagString: Untagged
@@ -420,27 +420,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &-8152209959851270022
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3390690485169171156}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aeb1c114cb2117848857258cfce07b57, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  affiliation: 0
-  currentAction: 0
-  speed: 10
-  turnSpeed: 3
-  turnDistance: 5
-  stoppingDistance: 10
-  isDead: 0
-  attackTargetPos: {x: 0, y: 0, z: 0}
-  attackTarget: {fileID: 0}
 --- !u!54 &7999131294996918715
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -489,6 +468,23 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 2.1457365, y: 2.211316, z: 1.7101436}
   m_Center: {x: -0.022875428, y: 0.99631906, z: 0.12598383}
+--- !u!114 &6466720462926695667
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3390690485169171156}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3e9f537c92e62a4e848523b867dbc2c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  affiliation: 1
+  currentAction: 0
+  isDead: 0
+  attackTargetPos: {x: 0, y: 0, z: 0}
+  attackTarget: {fileID: 0}
 --- !u!1 &3699153876307474248
 GameObject:
   m_ObjectHideFlags: 0

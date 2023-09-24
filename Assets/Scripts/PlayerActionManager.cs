@@ -17,7 +17,8 @@ public class PlayerActionManager : MonoBehaviour
         Move,
         Attack,
         Cast,
-        Camera
+        Camera,
+        Build
     }
 
     public Action currentAction;
@@ -232,6 +233,10 @@ public class PlayerActionManager : MonoBehaviour
         {
             priorAction = currentAction;
             currentAction = Action.Camera;
+        }
+        else if (action == "build")
+        {
+            currentAction = Action.Build;
         }
     }
 

@@ -469,9 +469,9 @@ GameObject:
   m_Component:
   - component: {fileID: 5861467008479657358}
   - component: {fileID: 3119340327235066179}
-  - component: {fileID: 7057497092327685909}
   - component: {fileID: 5703420243918380207}
   - component: {fileID: 8944631935620967706}
+  - component: {fileID: 2309880486084081325}
   m_Layer: 0
   m_Name: FootmanPBR
   m_TagString: Untagged
@@ -518,27 +518,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &7057497092327685909
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5352458922500068464}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aeb1c114cb2117848857258cfce07b57, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  affiliation: 0
-  currentAction: 0
-  speed: 10
-  turnSpeed: 3
-  turnDistance: 5
-  stoppingDistance: 10
-  isDead: 0
-  attackTargetPos: {x: 0, y: 0, z: 0}
-  attackTarget: {fileID: 0}
 --- !u!54 &5703420243918380207
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -587,6 +566,23 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.8711019, y: 2.0984514, z: 1.1443975}
   m_Center: {x: -0.088195294, y: 0.87655175, z: 0.116678834}
+--- !u!114 &2309880486084081325
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5352458922500068464}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0e81cdb270bf1a4399219ce6434c4ae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  affiliation: 0
+  currentAction: 0
+  isDead: 0
+  attackTargetPos: {x: 0, y: 0, z: 0}
+  attackTarget: {fileID: 0}
 --- !u!1 &5448383752346255231
 GameObject:
   m_ObjectHideFlags: 0
