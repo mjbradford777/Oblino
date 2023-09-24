@@ -97,8 +97,31 @@ public class PlayerActionManager : MonoBehaviour
                         foreach (GameObject go in currentlySelectedUnits)
                         {
                             Unit temp = go.GetComponent<Unit>();
-                            temp.targetPosition = hit.point;
-                            temp.StartPathfinding();
+                            /*temp.targetPosition = hit.point;*/
+                            temp.StartPathfinding(hit.point, "move", false);
+                        }
+                    }
+                    else if (currentAction == Action.Attack)
+                    {
+                        if (hit.collider.gameObject.tag == "EnemyUnit")
+                        {
+                            foreach (GameObject go in currentlySelectedUnits)
+                            {
+                                Unit temp = go.GetComponent<Unit>();
+                                /*temp.targetPosition = hit.point;*/
+                                temp.attackTarget = hit.collider.gameObject;
+                                temp.attackTargetPos = hit.collider.gameObject.transform.position;
+                                temp.StartPathfinding(hit.point, "attack target", false);
+                            }
+                        }
+                        else
+                        {
+                            foreach (GameObject go in currentlySelectedUnits)
+                            {
+                                Unit temp = go.GetComponent<Unit>();
+                                /*temp.targetPosition = hit.point;*/
+                                temp.StartPathfinding(hit.point, "attack", false);
+                            }
                         }
                     }
                 }

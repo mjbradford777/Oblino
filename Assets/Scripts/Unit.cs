@@ -4,19 +4,47 @@ using UnityEngine;
 
 public class Unit : MonoBehaviour
 {
+    public enum Action
+    {
+        Nothing,
+        Moving,
+        Attacking,
+        AttackingTarget
+    }
+
+    public enum UnitAffiliation
+    {
+        Player,
+        Enemy
+    }
+
+    public UnitAffiliation affiliation;
+
+    public Action currentAction;
     const float minPathUpdateTime = 0.2f;
     const float pathUpdateMoveThreshold = 0.5f;
     // Creates variables for the target of movement, speed of movement, the path, and the index of the target within the path
-    public Vector3 targetPosition;
     public float speed = 10.0f;
     public float turnSpeed = 3.0f;
     public float turnDistance = 5.0f;
     public float stoppingDistance = 10.0f;
+    public bool isDead = false;
+
+    private float sight = 15.0f;
+    private float attackRange = 2.5f;
+
+    public Vector3 attackTargetPos;
+    public GameObject attackTarget;
 
     private bool movementTimeoutRunning = false;
     private float duration = 3.0f;
 
-    private bool isMoving = false;
+    private bool isMovementSuspended = false;
+    private Vector3 suspendedTarget;
+    private bool inAttackRange = false;
+    private bool isFighting = false;
+
+    private bool hasPlayedDeathAnim = false;
 
     private Animator unitAnim;
     private GameObject highlighter;
@@ -31,10 +59,73 @@ public class Unit : MonoBehaviour
 
     public void Update()
     {
-        if (movementTimeoutRunning)
+        if (!isDead)
         {
-            duration -= Time.deltaTime;
+            if (movementTimeoutRunning)
+            {
+                duration -= Time.deltaTime;
+            }
+
+            if (currentAction != Action.Moving && currentAction != Action.AttackingTarget)
+            {
+                List<GameObject> targets = EnemiesInSight();
+                if (targets.Count > 0)
+                {
+                    int index = 0;
+                    float distance = 100.0f;
+                    for (int i = 0; i < targets.Count; i++)
+                    {
+                        float tempDist = Mathf.Abs(targets[i].transform.position.x - transform.position.x) + Mathf.Abs(targets[i].transform.position.z - transform.position.z);
+                        if (tempDist < distance)
+                        {
+                            index = i;
+                            distance = tempDist;
+                        }
+                    }
+                    attackTarget = targets[index];
+                    attackTargetPos = attackTarget.transform.position;
+                    if (currentAction == Action.Attacking)
+                    {
+                        isMovementSuspended = true;
+                        suspendedTarget = path.lookPoints[path.lookPoints.Length - 1];
+                        Debug.Log(suspendedTarget);
+                    }
+                    currentAction = Action.AttackingTarget;
+                    if (IsTargetInAttackRange(attackTargetPos))
+                    {
+                        inAttackRange = true;
+                    }
+                    else
+                    {
+                        StartPathfinding(attackTargetPos, "attack target", false);
+                    }
+                }
+            }
+
+            if (currentAction == Action.AttackingTarget && !inAttackRange)
+            {
+                if (attackTargetPos != attackTarget.transform.position)
+                {
+                    attackTargetPos = attackTarget.transform.position;
+                    StopCoroutine("UpdatePath");
+                    StopCoroutine("FollowPath");
+                    StartPathfinding(attackTargetPos, "attack target", false);
+                }
+            }
+
+            if (inAttackRange && !isFighting)
+            {
+                StopCoroutine("FollowPath");
+                isFighting = true;
+                StartCoroutine("Fighting");
+            }
         }
+        
+
+        /*if (isDead)
+        {
+            StopAllCoroutines();
+        }*/
     }
 
     public void OnPathFound(Vector3[] waypoints, bool pathSuccessful)
@@ -48,7 +139,7 @@ public class Unit : MonoBehaviour
         }
     }
 
-    IEnumerator UpdatePath()
+    IEnumerator UpdatePath(Vector3 targetPosition)
     {
         if (Time.timeSinceLevelLoad < 0.3f)
         {
@@ -71,7 +162,6 @@ public class Unit : MonoBehaviour
 
     IEnumerator FollowPath()
     {
-        isMoving = true;
         bool followingPath = true;
         int pathIndex = 0;
         transform.LookAt(path.lookPoints[0]);
@@ -83,6 +173,13 @@ public class Unit : MonoBehaviour
         while (followingPath)
         {
             Vector2 pos2D = new Vector2(transform.position.x, transform.position.z);
+            if (currentAction == Action.AttackingTarget)
+            {
+                if (IsTargetInAttackRange(attackTarget.transform.position))
+                {
+                    inAttackRange = true;
+                }
+            }
             while (path.turnBoundaries[pathIndex].HasCrossedLine(pos2D))
             {
                 if (pathIndex == path.finishLineIndex)
@@ -90,7 +187,8 @@ public class Unit : MonoBehaviour
                     followingPath = false;
                     unitAnim.SetBool("isRunningAnim", false);
                     unitAnim.SetBool("isWalkingAnim", false);
-                    isMoving = false;
+                    currentAction = Action.Nothing;
+                    isMovementSuspended = false;
                     break;
                 }
                 else
@@ -114,18 +212,20 @@ public class Unit : MonoBehaviour
                         } else if (movementTimeoutRunning && duration <= 0f)
                         {
                             followingPath = false;
-                            isMoving = false;
                             unitAnim.SetBool("isRunningAnim", false);
                             unitAnim.SetBool("isWalkingAnim", false);
                             movementTimeoutRunning = false;
                             duration = 3.0f;
+                            currentAction = Action.Nothing;
+                            isMovementSuspended = false;
                         }
                     }
                     if (speedPercent < 0.01f)
                     {
                         followingPath = false;
-                        isMoving = false;
                         unitAnim.SetBool("isWalkingAnim", false);
+                        currentAction = Action.Nothing;
+                        isMovementSuspended = false;
                     }
                 }
 
@@ -138,19 +238,39 @@ public class Unit : MonoBehaviour
         }
     }
 
-    public void StartPathfinding()
+    public void StartPathfinding(Vector3 targetPosition, string type, bool finishedFighting)
     {
-        StartCoroutine(UpdatePath());
+        if (finishedFighting)
+        {
+            StopCoroutine("Fighting");
+        }
+        if (type == "move")
+        {
+            StopCoroutine("Fighting");
+            currentAction = Action.Moving;
+            isFighting = false;
+            inAttackRange = false;
+        }
+        else if (type == "attack")
+        {
+            currentAction = Action.Attacking;
+        }
+        else if (type == "attack target")
+        {
+            currentAction = Action.AttackingTarget;
+        }
+        StartCoroutine(UpdatePath(targetPosition));
     }
 
     public void Halt()
     {
         StopCoroutine("FollowPath");
-        isMoving = false;
         unitAnim.SetBool("isRunningAnim", false);
         unitAnim.SetBool("isWalkingAnim", false);
         movementTimeoutRunning = false;
         duration = 3.0f;
+        currentAction = Action.Nothing;
+        isMovementSuspended = false;
     }
 
     public void AddHighlighting()
@@ -161,5 +281,64 @@ public class Unit : MonoBehaviour
     public void RemoveHighlighting()
     {
         highlighter.SetActive(false);
+    }
+
+    public List<GameObject> EnemiesInSight()
+    {
+        Collider[] temp = Physics.OverlapSphere(transform.position, sight);
+        List<GameObject> results = new List<GameObject>();
+
+        // THIS WILL NEED TO BE ADDRESSED LATER AS THIS WILL CAUSE AI PROBLEMS
+        if (this.tag != "EnemyUnit")
+        {
+            foreach (Collider collider in temp)
+            {
+                if (collider.gameObject.tag == "EnemyUnit" && !collider.gameObject.GetComponent<Unit>().isDead)
+                {
+                    results.Add(collider.gameObject);
+                }
+            }
+        }
+        return results;
+    }
+
+    public bool IsTargetInAttackRange(Vector3 target)
+    {
+        if (Mathf.Abs(transform.position.x - target.x) <= attackRange && Mathf.Abs(transform.position.z - target.z) <= attackRange)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    public IEnumerator Fighting()
+    {
+        while (!isDead && !attackTarget.GetComponent<Unit>().isDead)
+        {
+            Debug.Log("Fighting");
+            if (!IsTargetInAttackRange(attackTarget.transform.position))
+            {
+                isFighting = false;
+                inAttackRange = false;
+                attackTargetPos = attackTarget.transform.position;
+                StartPathfinding(attackTargetPos, "attack target", true);
+            }
+            yield return new WaitForSeconds(1.0f);
+        }
+        isFighting = false;
+        inAttackRange = false;
+        if (isMovementSuspended)
+        {
+            isMovementSuspended = false;
+            StartPathfinding(suspendedTarget, "attack", true);
+        }
+        else
+        {
+            currentAction = Action.Nothing;
+        }
+        yield return null;
     }
 }
