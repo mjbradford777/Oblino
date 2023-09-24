@@ -7,6 +7,9 @@ public class PlayerActionManager : MonoBehaviour
 {
     public Camera camera;
 
+    public Transform InvalidTargetWarning;
+    private Transform UIOverlay;
+
     public enum Action
     {
         Select,
@@ -34,6 +37,7 @@ public class PlayerActionManager : MonoBehaviour
     void Start()
     {
         camera = Camera.main;
+        UIOverlay = GameObject.Find("UI Overlay").transform;
         lineRend = GetComponent<LineRenderer>();
         lineRend.positionCount = 0;
     }
@@ -94,11 +98,18 @@ public class PlayerActionManager : MonoBehaviour
                     }
                     else if (currentAction == Action.Move && currentlySelectedUnits.Count > 0)
                     {
-                        foreach (GameObject go in currentlySelectedUnits)
+                        if (hit.collider.gameObject.layer == 6)
                         {
-                            Unit temp = go.GetComponent<Unit>();
-                            /*temp.targetPosition = hit.point;*/
-                            temp.StartPathfinding(hit.point, "move", false);
+                            Transform tempWarning = Instantiate(InvalidTargetWarning, UIOverlay);
+                            Destroy(tempWarning.gameObject, 1.5f);
+                        } 
+                        else
+                        {
+                            foreach (GameObject go in currentlySelectedUnits)
+                            {
+                                Unit temp = go.GetComponent<Unit>();
+                                temp.StartPathfinding(hit.point, "move", false);
+                            }
                         }
                     }
                     else if (currentAction == Action.Attack)
@@ -108,18 +119,21 @@ public class PlayerActionManager : MonoBehaviour
                             foreach (GameObject go in currentlySelectedUnits)
                             {
                                 Unit temp = go.GetComponent<Unit>();
-                                /*temp.targetPosition = hit.point;*/
                                 temp.attackTarget = hit.collider.gameObject;
                                 temp.attackTargetPos = hit.collider.gameObject.transform.position;
                                 temp.StartPathfinding(hit.point, "attack target", false);
                             }
+                        }
+                        else if (hit.collider.gameObject.layer == 6)
+                        {
+                            Transform tempWarning = Instantiate(InvalidTargetWarning, UIOverlay);
+                            Destroy(tempWarning.gameObject, 1.5f);
                         }
                         else
                         {
                             foreach (GameObject go in currentlySelectedUnits)
                             {
                                 Unit temp = go.GetComponent<Unit>();
-                                /*temp.targetPosition = hit.point;*/
                                 temp.StartPathfinding(hit.point, "attack", false);
                             }
                         }
