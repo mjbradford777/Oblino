@@ -4,7 +4,16 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/Oblino.unity
+    guid: 1d4c5c739de3c7f47b4deb98b4f9a3bd
+  - enabled: 1
+    path: Assets/Scenes/Victory.unity
+    guid: 558e9d3d22529f749933b9c661e683a7
+  - enabled: 1
+    path: Assets/Scenes/Defeat.unity
+    guid: eee5e1448303ed14683806dc7447e1a4
   m_configObjects:
     com.unity.adaptiveperformance.loader_settings: {fileID: 11400000, guid: 6562485757e6ba747981a2a785011c6f,
       type: 2}

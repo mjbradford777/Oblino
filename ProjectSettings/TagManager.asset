@@ -10,6 +10,7 @@ TagManager:
   - EnemyUnit
   - PlayerBuilding
   - EnemyBuilding
+  - Oblino
   layers:
   - Default
   - TransparentFX

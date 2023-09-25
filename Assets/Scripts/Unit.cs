@@ -395,7 +395,7 @@ public class Unit : MonoBehaviour
         {
             attackTarget
         };
-        if (attackTarget.tag == "EnemyUnit")
+        if (attackTarget.tag == "EnemyUnit" || attackTarget.tag == "PlayerUnit")
         {
             while (!isDead && !attackTarget.GetComponent<Unit>().isDead)
             {
@@ -414,7 +414,7 @@ public class Unit : MonoBehaviour
                 yield return new WaitForSeconds(attackSpeed);
             }
         }
-        else if (attackTarget.tag == "EnemyBuilding")
+        else if (attackTarget.tag == "EnemyBuilding" || attackTarget.tag == "PlayerBuilding")
         {
             while (!isDead && !attackTarget.GetComponent<Building>().isDestroyed)
             {
@@ -457,11 +457,11 @@ public class Unit : MonoBehaviour
         {
             if (target != null)
             {
-                if (target.tag == "EnemyUnit")
+                if (target.tag == "EnemyUnit" || target.tag == "PlayerUnit")
                 {
                     target.GetComponent<Unit>().TakeDamage(attackPower);
                 }
-                else if (target.tag == "EnemyBuilding")
+                else if (target.tag == "EnemyBuilding" || target.tag == "PlayerBuilding")
                 {
                     target.GetComponent<Building>().TakeDamage(attackPower);
                 }
@@ -481,7 +481,7 @@ public class Unit : MonoBehaviour
         List<Collider> validColliders = new List<Collider>();
         foreach(Collider collider in colliders)
         {
-            if (collider.gameObject.tag == "PlayerUnit" && collider.gameObject.name != name)
+            if (collider.gameObject.tag == tag && collider.gameObject.name != name)
             {
                 validColliders.Add(collider);
             }
@@ -517,7 +517,7 @@ public class Unit : MonoBehaviour
             validColliders.Clear();
             foreach (Collider collider in colliders)
             {
-                if (collider.gameObject.tag == "PlayerUnit" && collider.gameObject.name != name)
+                if (collider.gameObject.tag == tag && collider.gameObject.name != name)
                 {
                     validColliders.Add(collider);
                 }

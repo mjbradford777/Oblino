@@ -6,6 +6,8 @@ using UnityEngine;
 
 public class Building : MonoBehaviour
 {
+    private GameManager gameManager;
+
     private string side;
     public Transform FootmanPBR;
     public Transform DogPBR;
@@ -34,6 +36,7 @@ public class Building : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        gameManager = GameObject.Find("GameManager").GetComponent<GameManager>();
         if (side == "Player")
         {
             unitsContainer = GameObject.Find("PlayerUnits").transform;
@@ -59,6 +62,14 @@ public class Building : MonoBehaviour
         if (isDestroyed)
         {
             StopCoroutine("CreateUnit");
+            if (side == "Enemy")
+            {
+                gameManager.GameEnd("Player");
+            }
+            else if (side == "Player")
+            {
+                gameManager.GameEnd("Enemy");
+            }
             Destroy(gameObject, 1.5f);
         }
     }
@@ -83,10 +94,14 @@ public class Building : MonoBehaviour
         isBuilding = true;
         if (unitOption == "Footman")
         {
-            yield return new WaitForSeconds(6.0f);
-            Transform createdObject = Instantiate(FootmanPBR, new Vector3(transform.position.x - 5.0f, 0, transform.position.z - 5.0f), transform.rotation, unitsContainer);
-            GameObject unit = createdObject.gameObject;
-            unit.tag = "PlayerUnit";
+            if (gameManager.playerResources >= 30)
+            {
+                yield return new WaitForSeconds(6.0f);
+                Transform createdObject = Instantiate(FootmanPBR, new Vector3(transform.position.x - 5.0f, 0, transform.position.z - 5.0f), transform.rotation, unitsContainer);
+                GameObject unit = createdObject.gameObject;
+                unit.tag = "PlayerUnit";
+                gameManager.UpdateResourceCount("Player", 30);
+            }
         }
         else if (unitOption == "Grunt")
         {
@@ -94,13 +109,19 @@ public class Building : MonoBehaviour
             Transform createdObject = Instantiate(GruntPBR, new Vector3(transform.position.x - 5.0f, 0, transform.position.z - 5.0f), transform.rotation, unitsContainer);
             GameObject unit = createdObject.gameObject;
             unit.tag = "EnemyUnit";
+            gameManager.AIUnits.Add(unit);
+            gameManager.UpdateResourceCount("Enemy", 30);
         }
         else if (unitOption == "Knight")
         {
-            yield return new WaitForSeconds(6.0f);
-            Transform createdObject = Instantiate(DogPBR, new Vector3(transform.position.x - 5.0f, 0, transform.position.z - 5.0f), transform.rotation, unitsContainer);
-            GameObject unit = createdObject.gameObject;
-            unit.tag = "PlayerUnit";
+            if (gameManager.playerResources >= 50)
+            {
+                yield return new WaitForSeconds(6.0f);
+                Transform createdObject = Instantiate(DogPBR, new Vector3(transform.position.x - 5.0f, 0, transform.position.z - 5.0f), transform.rotation, unitsContainer);
+                GameObject unit = createdObject.gameObject;
+                unit.tag = "PlayerUnit";
+                gameManager.UpdateResourceCount("Player", 50);
+            }
         }
         else if (unitOption == "Golem")
         {
@@ -108,6 +129,8 @@ public class Building : MonoBehaviour
             Transform createdObject = Instantiate(PBR_Golem, new Vector3(transform.position.x - 5.0f, 0, transform.position.z - 5.0f), transform.rotation, unitsContainer);
             GameObject unit = createdObject.gameObject;
             unit.tag = "EnemyUnit";
+            gameManager.AIUnits.Add(unit);
+            gameManager.UpdateResourceCount("Enemy", 50);
         }
         isBuilding = false;
         yield return null;
