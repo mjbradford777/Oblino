@@ -350,11 +350,21 @@ public class Unit : MonoBehaviour
         List<GameObject> results = new List<GameObject>();
 
         // THIS WILL NEED TO BE ADDRESSED LATER AS THIS WILL CAUSE AI PROBLEMS
-        if (this.tag != "EnemyUnit")
+        if (tag == "PlayerUnit")
         {
             foreach (Collider collider in temp)
             {
-                if (collider.gameObject.tag == "EnemyUnit" && !collider.gameObject.GetComponent<Unit>().isDead)
+                if ((collider.gameObject.tag == "EnemyUnit" && !collider.gameObject.GetComponent<Unit>().isDead) || (collider.gameObject.tag == "EnemyBuilding" && !collider.gameObject.GetComponent<Building>().isDestroyed))
+                {
+                    results.Add(collider.gameObject);
+                }
+            }
+        }
+        else if (tag == "EnemyUnit")
+        {
+            foreach (Collider collider in temp)
+            {
+                if ((collider.gameObject.tag == "PlayerUnit" && !collider.gameObject.GetComponent<Unit>().isDead) || (collider.gameObject.tag == "PlayerBuilding" && !collider.gameObject.GetComponent<Building>().isDestroyed))
                 {
                     results.Add(collider.gameObject);
                 }
@@ -385,21 +395,43 @@ public class Unit : MonoBehaviour
         {
             attackTarget
         };
-        while (!isDead && !attackTarget.GetComponent<Unit>().isDead)
+        if (attackTarget.tag == "EnemyUnit")
         {
-            if (!IsTargetInAttackRange(attackTarget.transform.position))
+            while (!isDead && !attackTarget.GetComponent<Unit>().isDead)
             {
-                isFighting = false;
-                inAttackRange = false;
-                attackTargetPos = attackTarget.transform.position;
-                StartPathfinding(attackTargetPos, "attack target", true);
+                if (!IsTargetInAttackRange(attackTarget.transform.position))
+                {
+                    isFighting = false;
+                    inAttackRange = false;
+                    attackTargetPos = attackTarget.transform.position;
+                    StartPathfinding(attackTargetPos, "attack target", true);
+                }
+                else
+                {
+                    transform.LookAt(attackTarget.transform.position);
+                    InflictDamage(target);
+                }
+                yield return new WaitForSeconds(attackSpeed);
             }
-            else
+        }
+        else if (attackTarget.tag == "EnemyBuilding")
+        {
+            while (!isDead && !attackTarget.GetComponent<Building>().isDestroyed)
             {
-                transform.LookAt(attackTarget.transform.position);
-                InflictDamage(target);
+                if (!IsTargetInAttackRange(attackTarget.transform.position))
+                {
+                    isFighting = false;
+                    inAttackRange = false;
+                    attackTargetPos = attackTarget.transform.position;
+                    StartPathfinding(attackTargetPos, "attack target", true);
+                }
+                else
+                {
+                    transform.LookAt(attackTarget.transform.position);
+                    InflictDamage(target);
+                }
+                yield return new WaitForSeconds(attackSpeed);
             }
-            yield return new WaitForSeconds(attackSpeed);
         }
         isFighting = false;
         inAttackRange = false;
@@ -425,7 +457,14 @@ public class Unit : MonoBehaviour
         {
             if (target != null)
             {
-                target.GetComponent<Unit>().TakeDamage(attackPower);
+                if (target.tag == "EnemyUnit")
+                {
+                    target.GetComponent<Unit>().TakeDamage(attackPower);
+                }
+                else if (target.tag == "EnemyBuilding")
+                {
+                    target.GetComponent<Building>().TakeDamage(attackPower);
+                }
             }
         }
     }

@@ -8,6 +8,8 @@ TagManager:
   - PlayerUnit
   - UIButton
   - EnemyUnit
+  - PlayerBuilding
+  - EnemyBuilding
   layers:
   - Default
   - TransparentFX

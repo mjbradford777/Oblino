@@ -17,13 +17,14 @@ public class PlayerActionManager : MonoBehaviour
         Move,
         Attack,
         Cast,
-        Camera,
-        Build
+        Camera
     }
 
     public Action currentAction;
     private Action priorAction;
     public EventSystem eventSystem;
+
+    GameObject HomeBase;
 
     private List<GameObject> currentlySelectedUnits = new List<GameObject>();
     private List<GameObject> controlGroup1 = new List<GameObject>();
@@ -41,6 +42,7 @@ public class PlayerActionManager : MonoBehaviour
         UIOverlay = GameObject.Find("UI Overlay").transform;
         lineRend = GetComponent<LineRenderer>();
         lineRend.positionCount = 0;
+        HomeBase = GameObject.Find("KnightHouse");
     }
 
     // Update is called once per frame
@@ -115,7 +117,7 @@ public class PlayerActionManager : MonoBehaviour
                     }
                     else if (currentAction == Action.Attack)
                     {
-                        if (hit.collider.gameObject.tag == "EnemyUnit")
+                        if (hit.collider.gameObject.tag == "EnemyUnit" || hit.collider.gameObject.tag == "EnemyBuilding")
                         {
                             foreach (GameObject go in currentlySelectedUnits)
                             {
@@ -125,7 +127,7 @@ public class PlayerActionManager : MonoBehaviour
                                 temp.StartPathfinding(hit.point, "attack target", false);
                             }
                         }
-                        else if (hit.collider.gameObject.layer == 6)
+                        else if (hit.collider.gameObject.layer == 6 && hit.collider.gameObject.tag != "EnemyBuilding")
                         {
                             Transform tempWarning = Instantiate(InvalidTargetWarning, UIOverlay);
                             Destroy(tempWarning.gameObject, 1.5f);
@@ -233,10 +235,6 @@ public class PlayerActionManager : MonoBehaviour
         {
             priorAction = currentAction;
             currentAction = Action.Camera;
-        }
-        else if (action == "build")
-        {
-            currentAction = Action.Build;
         }
     }
 
@@ -362,7 +360,7 @@ public class PlayerActionManager : MonoBehaviour
         }
         else if (target == "home")
         {
-            // Implement this when base exists
+            camera.transform.position = new Vector3(HomeBase.transform.position.x, camera.transform.position.y, HomeBase.transform.position.z - 10);
         }
     }
 }
