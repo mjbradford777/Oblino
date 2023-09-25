@@ -153,12 +153,15 @@ public class Unit : MonoBehaviour
 
                 if (currentAction == Action.AttackingTarget && !inAttackRange)
                 {
-                    if (attackTargetPos != attackTarget.transform.position)
+                    if (attackTarget != null)
                     {
-                        attackTargetPos = attackTarget.transform.position;
-                        StopCoroutine("UpdatePath");
-                        StopCoroutine("FollowPath");
-                        StartPathfinding(attackTargetPos, "attack target", false);
+                        if (attackTargetPos != attackTarget.transform.position)
+                        {
+                            attackTargetPos = attackTarget.transform.position;
+                            StopCoroutine("UpdatePath");
+                            StopCoroutine("FollowPath");
+                            StartPathfinding(attackTargetPos, "attack target", false);
+                        }
                     }
                 }
 
@@ -387,6 +390,21 @@ public class Unit : MonoBehaviour
 
     public IEnumerator Fighting()
     {
+        if (attackTarget == null)
+        {
+            if (isMovementSuspended)
+            {
+                isMovementSuspended = false;
+                needsNewPath = true;
+                unitAnim.SetBool("isRunningAnim", true);
+                StartPathfinding(suspendedTarget, "attack", true);
+            }
+            else
+            {
+                currentAction = Action.Nothing;
+                StartCoroutine("MoveAwayFromAlly");
+            }
+        }
         unitAnim.SetBool("isWalkingAnim", false);
         unitAnim.SetBool("isRunningAnim", false);
         unitAnim.SetBool("isAttackingAnim", true);
@@ -412,12 +430,17 @@ public class Unit : MonoBehaviour
                     InflictDamage(target);
                 }
                 yield return new WaitForSeconds(attackSpeed);
+                if (attackTarget == null)
+                {
+                    break;
+                }
             }
         }
         else if (attackTarget.tag == "EnemyBuilding" || attackTarget.tag == "PlayerBuilding")
         {
             while (!isDead && !attackTarget.GetComponent<Building>().isDestroyed)
             {
+                attackTarget.GetComponent<Building>().isUnderAttack = true;
                 if (!IsTargetInAttackRange(attackTarget.transform.position))
                 {
                     isFighting = false;
@@ -431,6 +454,10 @@ public class Unit : MonoBehaviour
                     InflictDamage(target);
                 }
                 yield return new WaitForSeconds(attackSpeed);
+                if (attackTarget == null)
+                {
+                    break;
+                }
             }
         }
         isFighting = false;

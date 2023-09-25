@@ -174,7 +174,7 @@ GameObject:
   - component: {fileID: 5099417753710639352}
   m_Layer: 0
   m_Name: PBR_Golem
-  m_TagString: Untagged
+  m_TagString: EnemyUnit
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -230,7 +230,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a8f2a4c0abaf5545910abfa5ec275cf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  affiliation: 0
+  affiliation: 1
   currentAction: 0
   isDead: 0
   attackTargetPos: {x: 0, y: 0, z: 0}

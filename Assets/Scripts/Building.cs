@@ -22,6 +22,8 @@ public class Building : MonoBehaviour
     private float currentHP;
     private float armor;
 
+    public bool isUnderAttack = false; 
+
     public bool isDestroyed = false;
     private bool isBuilding = false;
 
@@ -97,19 +99,21 @@ public class Building : MonoBehaviour
             if (gameManager.playerResources >= 30)
             {
                 yield return new WaitForSeconds(6.0f);
-                Transform createdObject = Instantiate(FootmanPBR, new Vector3(transform.position.x - 5.0f, 0, transform.position.z - 5.0f), transform.rotation, unitsContainer);
+                Transform createdObject = Instantiate(FootmanPBR, new Vector3(transform.position.x - 10.0f, 0, transform.position.z - 10.0f), transform.rotation, unitsContainer);
                 GameObject unit = createdObject.gameObject;
                 unit.tag = "PlayerUnit";
+                unit.GetComponent<Unit>().StartCoroutine("MoveAwayFromAlly");
                 gameManager.UpdateResourceCount("Player", 30);
             }
         }
         else if (unitOption == "Grunt")
         {
             yield return new WaitForSeconds(3.0f);
-            Transform createdObject = Instantiate(GruntPBR, new Vector3(transform.position.x - 5.0f, 0, transform.position.z - 5.0f), transform.rotation, unitsContainer);
+            Transform createdObject = Instantiate(GruntPBR, new Vector3(transform.position.x - 10.0f, 0, transform.position.z - 10.0f), transform.rotation, unitsContainer);
             GameObject unit = createdObject.gameObject;
             unit.tag = "EnemyUnit";
             gameManager.AIUnits.Add(unit);
+            unit.GetComponent<Unit>().StartCoroutine("MoveAwayFromAlly");
             gameManager.UpdateResourceCount("Enemy", 30);
         }
         else if (unitOption == "Knight")
@@ -117,19 +121,21 @@ public class Building : MonoBehaviour
             if (gameManager.playerResources >= 50)
             {
                 yield return new WaitForSeconds(6.0f);
-                Transform createdObject = Instantiate(DogPBR, new Vector3(transform.position.x - 5.0f, 0, transform.position.z - 5.0f), transform.rotation, unitsContainer);
+                Transform createdObject = Instantiate(DogPBR, new Vector3(transform.position.x - 10.0f, 0, transform.position.z - 10.0f), transform.rotation, unitsContainer);
                 GameObject unit = createdObject.gameObject;
                 unit.tag = "PlayerUnit";
+                unit.GetComponent<Unit>().StartCoroutine("MoveAwayFromAlly");
                 gameManager.UpdateResourceCount("Player", 50);
             }
         }
         else if (unitOption == "Golem")
         {
             yield return new WaitForSeconds(6.0f);
-            Transform createdObject = Instantiate(PBR_Golem, new Vector3(transform.position.x - 5.0f, 0, transform.position.z - 5.0f), transform.rotation, unitsContainer);
+            Transform createdObject = Instantiate(PBR_Golem, new Vector3(transform.position.x - 10.0f, 0, transform.position.z - 10.0f), transform.rotation, unitsContainer);
             GameObject unit = createdObject.gameObject;
             unit.tag = "EnemyUnit";
             gameManager.AIUnits.Add(unit);
+            unit.GetComponent<Unit>().StartCoroutine("MoveAwayFromAlly");
             gameManager.UpdateResourceCount("Enemy", 50);
         }
         isBuilding = false;
